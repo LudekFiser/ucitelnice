@@ -10,5 +10,6 @@ public interface OrderItemMapper {
 
     @Mapping(source = "product.id", target = "productId")
     @Mapping(source = "product.title", target = "productTitle")
+    @Mapping(source = "product.googleDriveUrl", target = "googleDriveUrl")
     OrderItemResponse toResponse(OrderItem orderItem);
 }
