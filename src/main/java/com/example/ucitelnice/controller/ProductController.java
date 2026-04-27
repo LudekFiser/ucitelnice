@@ -2,6 +2,7 @@ package com.example.ucitelnice.controller;
 
 import com.example.ucitelnice.dto.product.CreateProductRequest;
 import com.example.ucitelnice.dto.product.CreateProductResponse;
+import com.example.ucitelnice.dto.product.UpdateProductRequest;
 import com.example.ucitelnice.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +33,36 @@ public class ProductController {
         var products = productService.allProducts();
         return ResponseEntity.ok().body(products);
     }
+    @GetMapping("/all-admin")
+    public ResponseEntity<List<CreateProductResponse>> allAdminProducts() {
+        var products = productService.allAdminProducts();
+        return ResponseEntity.ok().body(products);
+    }
 
     @GetMapping("/{productId}")
     public ResponseEntity<CreateProductResponse> getProductById(@PathVariable Long productId) {
         var product = productService.getProductById(productId);
         return ResponseEntity.ok().body(product);
+    }
+
+    @PutMapping("/edit/{productId}")
+    public ResponseEntity<CreateProductResponse> editProduct(
+            @PathVariable Long productId,
+            @RequestPart("req")UpdateProductRequest req,
+            @RequestPart(name = "images", required = false) List<MultipartFile> images) {
+        var product = productService.editProduct(productId, req, images);
+        return ResponseEntity.ok().body(product);
+    }
+
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+        productService.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{productId}/deactivate")
+    public ResponseEntity<Void> deactivateProduct(@PathVariable Long productId) {
+        productService.deactivateProduct(productId);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -3,6 +3,7 @@ package com.example.ucitelnice.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -57,7 +58,18 @@ public class SecurityConfig {
                                 "/orders/confirmation/**",
                                 "/api/order_items/**"
                         ).permitAll()
-                        .requestMatchers("/products/new", "/api/products/create", "/orders", "/api/orders/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/products/new",
+                                "/admin/**",
+                                "/orders/**",
+                                "/api/orders/**",
+                                "/api/products/all-admin"
+                        ).hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/products/create").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/edit/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/*/deactivate").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(login -> login

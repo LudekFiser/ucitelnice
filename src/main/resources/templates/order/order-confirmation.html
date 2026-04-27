@@ -1,23 +1,151 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Order Confirmation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-            rel="stylesheet">
-</head>
-<body class="bg-light">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+    <style>
+        :root {
+            --bg: #f6f7fb;
+            --surface: #ffffff;
+            --surface-soft: #f1f3f7;
+            --text: #16181d;
+            --muted: #6c7280;
+            --border: #e1e5ec;
+            --accent: #2563eb;
+            --accent-soft: #dbeafe;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+        }
+
+        html[data-theme="dark"] {
+            --bg: #111315;
+            --surface: #171a1d;
+            --surface-soft: #202428;
+            --text: #f1f3f5;
+            --muted: #a4a8ae;
+            --border: #2d3339;
+            --accent: #8ab4ff;
+            --accent-soft: rgba(138, 180, 255, 0.12);
+            --shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .app-navbar {
+            background: rgba(23, 26, 29, 0.88);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .navbar-brand {
+            color: var(--text) !important;
+        }
+
+        .page-shell {
+            padding: 64px 0;
+        }
+
+        .confirmation-panel,
+        .products-panel,
+        .empty-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .confirmation-panel {
+            padding: 40px;
+            background:
+                    radial-gradient(circle at top right, var(--accent-soft), transparent 34%),
+                    var(--surface);
+        }
+
+        .success-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 13px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.18);
+            color: #34d399;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .page-title {
+            font-size: clamp(2rem, 4vw, 3.7rem);
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+            font-weight: 850;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .info-box {
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        .products-panel {
+            padding: 28px;
+        }
+
+        .product-row {
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface-soft);
+            padding: 20px;
+        }
+
+        .btn-primary-custom {
+            background: var(--text);
+            color: var(--bg);
+            border: 1px solid var(--text);
+        }
+
+        .btn-primary-custom:hover {
+            background: transparent;
+            color: var(--text);
+        }
+
+        .btn-outline-custom {
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--surface-soft);
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .empty-card {
+            padding: 32px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar app-navbar">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/products/all">Home</a>
+        <a class="navbar-brand fw-bold" href="/products/all">Učitelnice</a>
     </div>
 </nav>
 
-<section class="py-5">
+<section class="page-shell">
     <div class="container">
         <div id="confirmationContainer"></div>
         <div id="itemsContainer" class="mt-4"></div>
@@ -37,7 +165,7 @@
             if (!orderResponse.ok) {
                 confirmationContainer.innerHTML = `
                     <div class="alert alert-danger">
-                        Order confirmation link is invalid or expired.
+                        Order confirmation link is invalid.
                     </div>
                 `;
                 return;
@@ -59,28 +187,33 @@
             const items = await itemsResponse.json();
 
             confirmationContainer.innerHTML = `
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4 p-lg-5">
-                        <div class="mb-4">
-                            <h1 class="h3 mb-2">Thank you for your purchase ✅</h1>
-                            <p class="text-muted mb-0">
-                                Your order has been successfully paid and is ready.
-                            </p>
-                        </div>
+                <div class="confirmation-panel">
+                    <span class="success-badge">Payment successful</span>
 
-                        <div class="row g-3">
-                            <div class="col-12 col-md-4">
-                                <p class="text-muted mb-1">Order number</p>
+                    <h1 class="page-title mb-3">Thank you for your purchase.</h1>
+
+                    <p class="muted mb-4">
+                        Your order has been successfully paid. You can download your purchased materials below.
+                    </p>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <div class="info-box h-100">
+                                <p class="muted mb-1">Order number</p>
                                 <p class="fw-semibold mb-0">#${order.id}</p>
                             </div>
+                        </div>
 
-                            <div class="col-12 col-md-4">
-                                <p class="text-muted mb-1">Email</p>
+                        <div class="col-12 col-md-4">
+                            <div class="info-box h-100">
+                                <p class="muted mb-1">Email</p>
                                 <p class="fw-semibold mb-0">${order.customerEmail ?? "-"}</p>
                             </div>
+                        </div>
 
-                            <div class="col-12 col-md-4">
-                                <p class="text-muted mb-1">Total</p>
+                        <div class="col-12 col-md-4">
+                            <div class="info-box h-100">
+                                <p class="muted mb-1">Total</p>
                                 <p class="fw-semibold mb-0">${order.totalAmount} Kč</p>
                             </div>
                         </div>
@@ -90,39 +223,40 @@
 
             if (items.length === 0) {
                 itemsContainer.innerHTML = `
-                    <div class="alert alert-light border">
-                        No products found for this order.
+                    <div class="empty-card">
+                        <h2 class="h5 mb-2">No products found</h2>
+                        <p class="muted mb-0">No purchased products were found for this order.</p>
                     </div>
                 `;
                 return;
             }
 
             let html = `
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <h2 class="h5 mb-3">Your purchased products</h2>
+                <div class="products-panel">
+                    <div class="mb-4">
+                        <h2 class="h4 mb-1">Your purchased products</h2>
+                        <p class="muted mb-0">Download links are available below.</p>
+                    </div>
 
-                        <div class="row g-3">
+                    <div class="d-flex flex-column gap-3">
             `;
 
             items.forEach(item => {
-                html += `
-                    <div class="col-12">
-                        <div class="border rounded p-3 bg-white">
-                            <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
-                                <div>
-                                    <h3 class="h6 mb-1">${item.productTitle ?? "Product #" + item.productId}</h3>
-                                    <p class="text-muted mb-1">Quantity: ${item.quantity}</p>
-                                    <p class="mb-0"><strong>Total:</strong> ${item.total} Kč</p>
-                                </div>
+                const downloadButton = item.googleDriveUrl
+                    ? `<a href="${item.googleDriveUrl}" class="btn btn-primary-custom" target="_blank">Download</a>`
+                    : `<span class="muted">No download link</span>`;
 
-                                <div class="d-flex align-items-center">
-                                    <a href="${item.googleDriveUrl}"
-                                       class="btn btn-dark"
-                                       target="_blank">
-                                        Download
-                                    </a>
-                                </div>
+                html += `
+                    <div class="product-row">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                            <div>
+                                <h3 class="h5 mb-2">${item.productTitle ?? "Product #" + item.productId}</h3>
+                                <p class="muted mb-1">Quantity: ${item.quantity}</p>
+                                <p class="mb-0"><strong>Total:</strong> ${item.total} Kč</p>
+                            </div>
+
+                            <div>
+                                ${downloadButton}
                             </div>
                         </div>
                     </div>
@@ -130,7 +264,6 @@
             });
 
             html += `
-                        </div>
                     </div>
                 </div>
             `;
@@ -149,7 +282,7 @@
     loadConfirmation();
 </script>
 
-<script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
