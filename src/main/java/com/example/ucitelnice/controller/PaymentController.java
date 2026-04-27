@@ -43,19 +43,6 @@ public class PaymentController {
     @Value("${stripe.webhook.secret}")
     private String stripeWebhookSecret;
 
-
-
-    @PostMapping("/api/payment/stripe-test")
-    public String createTestProduct() throws StripeException {
-        var params = ProductCreateParams.builder()
-                .setName("Test product")
-                .build();
-
-        var product = Product.create(params);
-
-        return product.getId();
-    }
-
     @PostMapping("/api/payment/checkout")
     public String createCheckoutSession(HttpSession httpSession) throws StripeException {
 
@@ -67,14 +54,14 @@ public class PaymentController {
 
         var paramsBuilder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:8081/payment/success")
-                .setCancelUrl("http://localhost:8081/payment/cancelled");
+                .setSuccessUrl("http://localhost:5173/payment/success")
+                .setCancelUrl("http://localhost:5173/payment/cancelled");
 
         BigDecimal total = BigDecimal.ZERO;
 
         for (CartItemResponse item : cart) {
             var lineItem = SessionCreateParams.LineItem.builder()
-                    .setQuantity(item.getQuantity().longValue())
+                    .setQuantity(1L)
                     .setPriceData(
                             SessionCreateParams.LineItem.PriceData.builder()
                                     .setCurrency("czk")
@@ -95,7 +82,7 @@ public class PaymentController {
             paramsBuilder.addLineItem(lineItem);
 
             total = total.add(
-                    item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                    item.getPrice()
             );
         }
 
@@ -103,6 +90,7 @@ public class PaymentController {
         order.setOrderStatus(OrderStatus.PENDING);
         order.setPaymentStatus(PaymentStatus.UNPAID);
         order.setTotalAmount(total);
+        order.setConfirmationToken(UUID.randomUUID().toString());
 
         order = orderRepository.save(order);
 
@@ -114,11 +102,7 @@ public class PaymentController {
 
             orderItem.setOrder(order);
             orderItem.setProduct(product);
-            orderItem.setQuantity(item.getQuantity());
-            orderItem.setUnitPrice(item.getPrice());
-            orderItem.setTotal(
-                    item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
-            );
+            orderItem.setProductPrice(item.getPrice());
             orderItem.setProductTitle(item.getTitle());
 
             orderItemRepository.save(orderItem);
@@ -180,7 +164,6 @@ public class PaymentController {
             order.setPaymentStatus(PaymentStatus.PAID);
             order.setStripePaymentIntentId(session.getPaymentIntent());
             order.setCustomerEmail(customerEmail);
-            order.setConfirmationToken(UUID.randomUUID().toString());
 
             orderRepository.save(order);
             emailService.sendBoughtProductsLinks(customerEmail, order.getOrderItems(), order.getConfirmationToken());

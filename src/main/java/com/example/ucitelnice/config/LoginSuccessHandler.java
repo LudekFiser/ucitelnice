@@ -28,7 +28,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             userService.syncUserFromKeycloak(oidcUser);
         }
 
-        response.sendRedirect("/");
+        response.sendRedirect("http://localhost:5173/");
     }
 
 

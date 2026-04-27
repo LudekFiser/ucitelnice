@@ -12,8 +12,6 @@ public class OrderItemResponse {
     private Long id;
     private Long productId;
     private String productTitle;
-    private BigDecimal unitPrice;
-    private Integer quantity;
-    private BigDecimal total;
+    private BigDecimal productPrice;
     private String googleDriveUrl;
 }

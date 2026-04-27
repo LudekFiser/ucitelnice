@@ -29,9 +29,5 @@ public class OrderItem {
 
     private String productTitle;
 
-    private BigDecimal unitPrice;
-
-    private Integer quantity;
-
-    private BigDecimal total;
+    private BigDecimal productPrice;
 }

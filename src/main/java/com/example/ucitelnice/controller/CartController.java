@@ -21,11 +21,11 @@ public class CartController {
         cartService.addToCart(productId, session);
         return ResponseEntity.ok("Product added to cart");
     }
-    @PostMapping("/decrease/{productId}")
+    /*@PostMapping("/decrease/{productId}")
     public ResponseEntity<Void> decreaseQuantity(@PathVariable Long productId, HttpSession session) {
         cartService.decreaseQuantity(productId, session);
         return ResponseEntity.ok().build();
-    }
+    }*/
     @GetMapping
     public ResponseEntity<List<CartItemResponse>> getCart(HttpSession session) {
         return ResponseEntity.ok(cartService.getCart(session));

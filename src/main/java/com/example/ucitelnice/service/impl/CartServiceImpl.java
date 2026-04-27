@@ -34,13 +34,12 @@ public class CartServiceImpl implements CartService {
         }
 
         if (existingItem != null) {
-            existingItem.setQuantity(existingItem.getQuantity() + 1);
+            cart.remove(existingItem);
         } else {
             CartItemResponse newItem = new CartItemResponse();
             newItem.setProductId(product.getId());
             newItem.setTitle(product.getTitle());
             newItem.setPrice(product.getPrice());
-            newItem.setQuantity(1);
 
             cart.add(newItem);
         }
@@ -48,7 +47,7 @@ public class CartServiceImpl implements CartService {
         session.setAttribute(CART_SESSION_KEY, cart);
     }
 
-    @Override
+    /*@Override
     public void decreaseQuantity(Long productId, HttpSession session) {
         var cart = getOrCreateCart(session);
 
@@ -72,7 +71,7 @@ public class CartServiceImpl implements CartService {
         }
 
         session.setAttribute(CART_SESSION_KEY, cart);
-    }
+    }*/
 
 
     @Override

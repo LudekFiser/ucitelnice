@@ -1,25 +1,29 @@
 package com.example.ucitelnice.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUserAuthority;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 @Configuration
 @RequiredArgsConstructor
@@ -30,10 +34,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            LogoutSuccessHandler logoutSuccessHandler) throws Exception {
         http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(
                                 "/api/payment/**",
-                                "/api/cart/**"
+                                "/api/cart/**",
+                                "/api/products/**",
+                                "/api/orders/**",
+                                "/api/order_items/**"
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
@@ -56,7 +64,8 @@ public class SecurityConfig {
                                 "/payment/cancelled",
                                 "/api/orders/confirmation/**",
                                 "/orders/confirmation/**",
-                                "/api/order_items/**"
+                                "/api/order_items/**",
+                                "/api/auth/me"
                         ).permitAll()
                         .requestMatchers(
                                 "/products/new",
@@ -78,7 +87,27 @@ public class SecurityConfig {
                         .logoutSuccessHandler(logoutSuccessHandler)
                 )
                 .exceptionHandling(ex -> ex
-                        .accessDeniedPage("/access-denied"));
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            String path = request.getRequestURI();
+                            if (path.startsWith("/api/")) {
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setContentType("application/json");
+                                response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                            } else {
+                                response.sendRedirect("/oauth2/authorization/keycloak");
+                            }
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            String path = request.getRequestURI();
+                            if (path.startsWith("/api/")) {
+                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                response.setContentType("application/json");
+                                response.getWriter().write("{\"error\":\"Forbidden\"}");
+                            } else {
+                                response.sendRedirect("/access-denied");
+                            }
+                        })
+                );
 
         return http.build();
     }
@@ -88,8 +117,20 @@ public class SecurityConfig {
         OidcClientInitiatedLogoutSuccessHandler handler =
                 new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
 
-        handler.setPostLogoutRedirectUri("{baseUrl}/");
+        handler.setPostLogoutRedirectUri("http://localhost:5173/");
         return handler;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // KRITICKÉ - posílá session cookies (cart)
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean

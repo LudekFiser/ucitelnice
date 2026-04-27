@@ -8,6 +8,6 @@ import java.util.List;
 public interface CartService {
 
     void addToCart(Long productId, HttpSession session);
-    void decreaseQuantity(Long productId, HttpSession session);
+    //void decreaseQuantity(Long productId, HttpSession session);
     List<CartItemResponse> getCart(HttpSession session);
 }
